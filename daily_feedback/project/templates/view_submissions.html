@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}View Submissions - Student Management System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Student Submissions</h1>
+    <p>Review and download all student submissions</p>
+</div>
+
+<div class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="color: #1f2937; margin: 0;">📂 All Submissions</h2>
+            <p style="color: #6b7280; margin: 0;">Total submissions: {{ submissions|length }}</p>
+        </div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    {% if submissions %}
+        <div class="card">
+            <div style="max-height: 70vh; overflow-y: auto;">
+                {% for submission, activity, student in submissions %}
+                <div class="activity-card completed" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #1f2937;">{{ activity.title }}</h4>
+                                <div class="status-badge status-completed">✅ Submitted</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <p style="color: #374151; margin-bottom: 0.25rem;">
+                                    <strong>👤 Student:</strong> {{ student.name }}
+                                </p>
+                                <p style="color: #6b7280; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                                    📧 {{ student.email }}
+                                </p>
+                                <p style="color: #9ca3af; font-size: 0.875rem;">
+                                    📅 Submitted: {{ submission.submitted_at|datetime }}
+                                </p>
+                            </div>
+                            
+                            {% if activity.description %}
+                            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <p style="color: #4b5563; font-size: 0.875rem; margin: 0;">
+                                    <strong>📝 Activity Description:</strong> {{ activity.description }}
+                                </p>
+                            </div>
+                            {% endif %}
+                            
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                {% if activity.resource_file %}
+                                <a href="{{ url_for('download_file', filename=activity.resource_file) }}" 
+                                   class="btn btn-info" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                    📎 Original Resources
+                                </a>
+                                {% endif %}
+                                
+                                {% if submission.submitted_file %}
+                                <a href="{{ url_for('download_file', filename=submission.submitted_file) }}" 
+                                   class="btn btn-success" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                    💾 Download Student Submission
+                                </a>
+                                {% else %}
+                                <span style="color: #f59e0b; font-size: 0.875rem; padding: 0.5rem;">
+                                    ⚠️ No file submitted
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Activity Details -->
+                    <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px; font-size: 0.875rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <strong>📅 Activity Created:</strong><br>
+                                <span style="color: #6b7280;">{{ activity.created_at|datetime }}</span>
+                            </div>
+                            {% if activity.due_date %}
+                            <div>
+                                <strong>⏰ Due Date:</strong><br>
+                                <span style="color: #6b7280;">{{ activity.due_date }}</span>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <strong>👥 Assignment:</strong><br>
+                                <span style="color: #6b7280;">
+                                    {% if activity.assigned_to_all %}
+                                        All Students
+                                    {% else %}
+                                        Individual Assignment
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if submission.submitted_file %}
+                            <div>
+                                <strong>📁 File Name:</strong><br>
+                                <span style="color: #6b7280; font-family: monospace;">{{ submission.submitted_file }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">📝</div>
+            <h3 style="margin-bottom: 1rem; color: #4b5563;">No Submissions Yet</h3>
+            <p style="color: #6b7280; margin-bottom: 2rem;">
+                Student submissions will appear here once they start submitting their assignments.
+            </p>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn">
+                📋 Create New Activity
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-refresh submissions every 30 seconds
+setInterval(function() {
+    // Optional: Add AJAX refresh for real-time updates
+    // location.reload();
+}, 30000);
+
+// Add confirmation for bulk actions (if implemented later)
+function confirmBulkAction(action) {
+    return confirm(`Are you sure you want to ${action} the selected submissions?`);
+}
+</script>
+{% endblock %}
