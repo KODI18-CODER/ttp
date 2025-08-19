@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Student Management System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Join Our Community!</h1>
+    <p>Create your student account</p>
+</div>
+
+<div class="main-content">
+    <div style="max-width: 500px; margin: 0 auto;">
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">📝 Register as Student</h3>
+            
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label for="name">👤 Full Name:</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">📧 Email Address:</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="Enter your email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">🔒 Password:</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Create a strong password (min 6 characters)" 
+                           minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">🔒 Confirm Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           placeholder="Confirm your password">
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; margin-bottom: 1rem;">
+                    🚀 Create Account
+                </button>
+            </form>
+            
+            <hr style="margin: 2rem 0; border: none; height: 1px; background: #e5e7eb;">
+            
+            <div style="text-align: center;">
+                <p style="margin-bottom: 1rem; color: #6b7280;">Already have an account?</p>
+                <a href="{{ url_for('login') }}" class="btn btn-info">
+                    🔐 Login Here
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePassword() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity("Passwords don't match");
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    password.addEventListener('change', validatePassword);
+    confirmPassword.addEventListener('keyup', validatePassword);
+    
+    form.addEventListener('submit', function(e) {
+        if (password.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert("Passwords don't match!");
+        }
+    });
+});
+</script>
+{% endblock %}

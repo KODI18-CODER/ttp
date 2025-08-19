@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Student Management System{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Admin Dashboard</h1>
+    <p>Manage students, activities, and track progress</p>
+</div>
+
+<div class="main-content">
+    <!-- Quick Stats -->
+    <div class="grid grid-4" style="margin-bottom: 2rem;">
+        <div class="stat-card" style="border-color: #3b82f6;">
+            <div class="stat-number" style="color: #3b82f6;">{{ stats.total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card" style="border-color: #10b981;">
+            <div class="stat-number" style="color: #10b981;">{{ stats.total_activities }}</div>
+            <div class="stat-label">Total Activities</div>
+        </div>
+        <div class="stat-card" style="border-color: #f59e0b;">
+            <div class="stat-number" style="color: #f59e0b;">{{ stats.total_submissions }}</div>
+            <div class="stat-label">Total Submissions</div>
+        </div>
+        <div class="stat-card" style="border-color: #ef4444;">
+            <div class="stat-number" style="color: #ef4444;">
+                <a href="{{ url_for('view_submissions') }}" class="btn btn-info" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                    📂 View All
+                </a>
+            </div>
+            <div class="stat-label">Student Submissions</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('activities')">
+            📋 Assign Activities
+        </button>
+        <button class="tab-button" onclick="switchTab('students')">
+            👨‍🎓 Students
+        </button>
+        <button class="tab-button" onclick="switchTab('submissions')">
+            📤 Recent Submissions
+        </button>
+    </div>
+
+    <!-- Activities Tab -->
+    <div id="activities" class="tab-content active">
+        <div class="card">
+            <h3>📝 Create New Activity</h3>
+            <form method="POST" action="{{ url_for('assign_activity') }}" enctype="multipart/form-data">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="title">📌 Activity Title:</label>
+                        <input type="text" id="title" name="title" required 
+                               placeholder="Enter activity title">
+                    </div>
+                    <div class="form-group">
+                        <label for="due_date">📅 Due Date (Optional):</label>
+                        <input type="date" id="due_date" name="due_date">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">📄 Description:</label>
+                    <textarea id="description" name="description" rows="4" 
+                              placeholder="Describe the activity, requirements, and instructions..."></textarea>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label for="assigned_to">👥 Assign To:</label>
+                        <select id="assigned_to" name="assigned_to" required>
+                            <option value="">Select assignment type...</option>
+                            <option value="all">🌍 All Students</option>
+                            <optgroup label="Individual Students">
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.name }} ({{ student.email }})</option>
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="resource_file">📎 Resource File (Optional):</label>
+                        <div class="file-upload-area">
+                            <input type="file" id="resource_file" name="resource_file" 
+                                   accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xlsx,.zip,.png,.jpg,.jpeg,.gif,.mp4,.avi"
+                                   style="display: none;">
+                            <div onclick="document.getElementById('resource_file').click();" style="cursor: pointer;">
+                                <p style="margin-bottom: 0.5rem;">📁 Click to select file or drag and drop</p>
+                                <p style="font-size: 0.875rem; color: #6b7280;">Supported: PDF, DOC, TXT, Images, Videos, etc.</p>
+                                <div class="file-info"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%;">
+                    🚀 Create & Assign Activity
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="card">
+            <h3>📚 Recent Activities</h3>
+            {% if activities %}
+                {% for activity in activities %}
+                <div class="activity-card">
+                    <div style="display: flex; justify-content: between; align-items: start; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <h4 style="margin-bottom: 0.5rem; color: #1f2937;">{{ activity.title }}</h4>
+                            <p style="color: #6b7280; margin-bottom: 0.5rem;">{{ activity.description or 'No description provided' }}</p>
+                            <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: #9ca3af;">
+                                <span>👤 Assigned to: 
+                                    {% if activity.assigned_to_all %}
+                                        All Students
+                                    {% else %}
+                                        {{ activity.assigned_to_user.name if activity.assigned_to_user else 'Unknown' }}
+                                    {% endif %}
+                                </span>
+                                {% if activity.due_date %}
+                                <span>📅 Due: {{ activity.due_date }}</span>
+                                {% endif %}
+                                <span>📊 Submissions: {{ activity.submissions|length }}</span>
+                            </div>
+                            
+                            {% if activity.resource_file %}
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{{ url_for('download_file', filename=activity.resource_file) }}" 
+                                   class="btn btn-info" style="font-size: 0.875rem; padding: 0.25rem 0.75rem;">
+                                    📎 Download Resource
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 0.875rem; color: #9ca3af;">
+                            {{ activity.created_at|datetime }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #6b7280; padding: 2rem;">
+                    No activities created yet. Create your first activity above! 🚀
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Students Tab -->
+    <div id="students" class="tab-content">
+        <div class="card">
+            <h3>👨‍🎓 Registered Students</h3>
+            {% if students %}
+                <div class="grid grid-2">
+                    {% for student in students %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h4 style="margin-bottom: 0.25rem; color: #1f2937;">{{ student.name }}</h4>
+                                <p style="color: #6b7280; margin-bottom: 0.5rem; font-size: 0.875rem;">{{ student.email }}</p>
+                                <div style="font-size: 0.75rem; color: #9ca3af;">
+                                    Joined: {{ student.created_at|datetime }}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.875rem; color: #374151;">
+                                    <div>📝 Submissions: {{ student.submissions|length }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="text-align: center; color: #6b7280; padding: 2rem;">
+                    No students registered yet. 📚
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Submissions Tab -->
+    <div id="submissions" class="tab-content">
+        <div class="card">
+            <h3>📤 Recent Student Submissions</h3>
+            {% if recent_submissions %}
+                {% for submission, activity, student in recent_submissions %}
+                <div class="activity-card completed">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <h4 style="margin-bottom: 0.5rem; color: #1f2937;">{{ activity.title }}</h4>
+                            <p style="color: #6b7280; margin-bottom: 0.5rem;">
+                                <strong>Student:</strong> {{ student.name }} ({{ student.email }})
+                            </p>
+                            <div style="font-size: 0.875rem; color: #9ca3af;">
+                                Submitted: {{ submission.submitted_at|datetime }}
+                            </div>
+                            
+                            {% if submission.submitted_file %}
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{{ url_for('download_file', filename=submission.submitted_file) }}" 
+                                   class="btn btn-success" style="font-size: 0.875rem; padding: 0.25rem 0.75rem;">
+                                    💾 Download Submission
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="status-badge status-completed">
+                            ✅ Submitted
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="{{ url_for('view_submissions') }}" class="btn btn-info">
+                        📂 View All Submissions
+                    </a>
+                </div>
+            {% else %}
+                <p style="text-align: center; color: #6b7280; padding: 2rem;">
+                    No submissions yet. Students will submit their work here! 📝
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// File upload preview
+document.getElementById('resource_file').addEventListener('change', function(e) {
+    const fileInfo = document.querySelector('.file-info');
+    if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        fileInfo.innerHTML = `<p style="color: #10b981; margin-top: 0.5rem;"><strong>Selected:</strong> ${file.name}</p>`;
+    } else {
+        fileInfo.innerHTML = '';
+    }
+});
+</script>
+{% endblock %}
